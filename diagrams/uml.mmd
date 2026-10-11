@@ -1,15 +1,36 @@
 classDiagram
-    %% Replace the placeholders below with your actual classes, attributes, methods, and relationships.
-    %% Keep this file updated so it matches your final implementation.
-
-    class ClassName {
-        +type attribute
-        +method() returnType
+    class Owner {
+        +str name
+        +list~Pet~ pets
+        +rename(name) None
+        +add_pet(name, species) Pet
     }
 
-    class AnotherClass {
-        +type attribute
-        +method() returnType
+    class Pet {
+        +str name
+        +str species
+        +str owner_name
+        +list~FeedingRecord~ feedings
+        +list~VetVisit~ vet_visits
+        +add_feeding(fed_at, food) FeedingRecord
+        +add_vet_visit(visit_date, veterinarian, notes) VetVisit
     }
 
-    ClassName --> AnotherClass : relationship
+    class FeedingRecord {
+        +str pet_name
+        +str owner_name
+        +datetime fed_at
+        +str food
+    }
+
+    class VetVisit {
+        +str pet_name
+        +str owner_name
+        +date visit_date
+        +str veterinarian
+        +str notes
+    }
+
+    Owner "1" o-- "*" Pet : cares for
+    Pet "1" *-- "*" FeedingRecord : feeding log
+    Pet "1" *-- "*" VetVisit : checkup history

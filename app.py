@@ -1,88 +1,114 @@
+from datetime import date, datetime
+
 import streamlit as st
 
+from pawpal_system import Owner, Pet
+
+
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
-
 st.title("🐾 PawPal+")
+st.write("Keep your pets, feeding times, and veterinary checkups in one place.")
 
-st.markdown(
-    """
-Welcome to the PawPal+ starter app.
+if "owner" not in st.session_state:
+    st.session_state.owner = Owner("Jordan")
 
-This file is intentionally thin. It gives you a working Streamlit app so you can start quickly,
-but **it does not implement the project logic**. Your job is to design the system and build it.
+owner: Owner = st.session_state.owner
+owner_name = st.sidebar.text_input("Owner name", value=owner.name, key="owner_name_input")
+owner.rename(owner_name)
 
-Use this app as your interactive demo once your backend classes/functions exist.
-"""
-)
+pets_tab, feeding_tab, vet_tab = st.tabs(["Pets", "Feeding", "Vet history"])
 
-with st.expander("Scenario", expanded=True):
-    st.markdown(
-        """
-**PawPal+** is a pet care planning assistant. It helps a pet owner plan care tasks
-for their pet(s) based on constraints like time, priority, and preferences.
+with pets_tab:
+    st.subheader("Your pets")
+    st.caption(f"Owner: {owner.name or 'Enter an owner name in the sidebar'}")
 
-You will design and implement the scheduling logic and connect it to this Streamlit UI.
-"""
-    )
+    with st.form("add_pet_form", clear_on_submit=True):
+        pet_name = st.text_input("Pet name")
+        species = st.selectbox("Species", ["Dog", "Cat", "Bird", "Other"])
+        add_pet = st.form_submit_button("Add pet")
 
-with st.expander("What you need to build", expanded=True):
-    st.markdown(
-        """
-At minimum, your system should:
-- Represent pet care tasks (what needs to happen, how long it takes, priority)
-- Represent the pet and the owner (basic info and preferences)
-- Build a plan/schedule for a day that chooses and orders tasks based on constraints
-- Explain the plan (why each task was chosen and when it happens)
-"""
-    )
+    if add_pet:
+        try:
+            pet = owner.add_pet(pet_name, species)
+            st.success(f"Added {pet.name}.")
+        except ValueError as error:
+            st.error(str(error))
 
-st.divider()
+    if owner.pets:
+        for pet in owner.pets:
+            st.markdown(f"**{pet.name}** · {pet.species} · Owner: {pet.owner_name}")
+    else:
+        st.info("No pets yet. Add your first pet above.")
 
-st.subheader("Quick Demo Inputs (UI only)")
-owner_name = st.text_input("Owner name", value="Jordan")
-pet_name = st.text_input("Pet name", value="Mochi")
-species = st.selectbox("Species", ["dog", "cat", "other"])
+with feeding_tab:
+    st.subheader("Feeding log")
+    if not owner.pets:
+        st.info("Add a pet before recording a feeding.")
+    else:
+        with st.form("add_feeding_form", clear_on_submit=True):
+            selected_pet: Pet = st.selectbox(
+                "Pet", owner.pets, format_func=lambda pet: pet.name
+            )
+            feeding_date = st.date_input("Date", value=date.today())
+            feeding_time = st.time_input(
+                "Feeding time", value=datetime.now().time().replace(second=0, microsecond=0)
+            )
+            food = st.text_input("Food (optional)")
+            add_feeding = st.form_submit_button("Record feeding")
 
-st.markdown("### Tasks")
-st.caption("Add a few tasks. In your final version, these should feed into your scheduler.")
+        if add_feeding:
+            fed_at = datetime.combine(feeding_date, feeding_time)
+            selected_pet.add_feeding(fed_at, food)
+            st.success(f"Recorded feeding for {selected_pet.name}.")
 
-if "tasks" not in st.session_state:
-    st.session_state.tasks = []
+        feeding_rows = [
+            {
+                "Date and time": record.fed_at.strftime("%Y-%m-%d %I:%M %p"),
+                "Pet": record.pet_name,
+                "Owner": record.owner_name,
+                "Food": record.food or "—",
+            }
+            for pet in owner.pets
+            for record in pet.feedings
+        ]
+        if feeding_rows:
+            st.dataframe(feeding_rows, hide_index=True, use_container_width=True)
+        else:
+            st.info("No feedings recorded yet.")
 
-col1, col2, col3 = st.columns(3)
-with col1:
-    task_title = st.text_input("Task title", value="Morning walk")
-with col2:
-    duration = st.number_input("Duration (minutes)", min_value=1, max_value=240, value=20)
-with col3:
-    priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
+with vet_tab:
+    st.subheader("Veterinary checkup history")
+    if not owner.pets:
+        st.info("Add a pet before recording a vet visit.")
+    else:
+        with st.form("add_vet_visit_form", clear_on_submit=True):
+            selected_pet: Pet = st.selectbox(
+                "Pet", owner.pets, format_func=lambda pet: pet.name
+            )
+            visit_date = st.date_input("Visit date", value=date.today(), key="visit_date")
+            veterinarian = st.text_input("Veterinarian or clinic")
+            notes = st.text_area("Checkup notes")
+            add_visit = st.form_submit_button("Add vet visit")
 
-if st.button("Add task"):
-    st.session_state.tasks.append(
-        {"title": task_title, "duration_minutes": int(duration), "priority": priority}
-    )
+        if add_visit:
+            if not veterinarian.strip():
+                st.error("Enter the veterinarian or clinic name.")
+            else:
+                selected_pet.add_vet_visit(visit_date, veterinarian, notes)
+                st.success(f"Added vet visit for {selected_pet.name}.")
 
-if st.session_state.tasks:
-    st.write("Current tasks:")
-    st.table(st.session_state.tasks)
-else:
-    st.info("No tasks yet. Add one above.")
-
-st.divider()
-
-st.subheader("Build Schedule")
-st.caption("This button should call your scheduling logic once you implement it.")
-
-if st.button("Generate schedule"):
-    st.warning(
-        "Not implemented yet. Next step: create your scheduling logic (classes/functions) and call it here."
-    )
-    st.markdown(
-        """
-Suggested approach:
-1. Design your UML (draft).
-2. Create class stubs (no logic).
-3. Implement scheduling behavior.
-4. Connect your scheduler here and display results.
-"""
-    )
+        visit_rows = [
+            {
+                "Date": visit.visit_date.isoformat(),
+                "Pet": visit.pet_name,
+                "Owner": visit.owner_name,
+                "Veterinarian / clinic": visit.veterinarian,
+                "Notes": visit.notes or "—",
+            }
+            for pet in owner.pets
+            for visit in pet.vet_visits
+        ]
+        if visit_rows:
+            st.dataframe(visit_rows, hide_index=True, use_container_width=True)
+        else:
+            st.info("No vet visits recorded yet.")

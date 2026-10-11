@@ -7,6 +7,10 @@
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
+1. add feeding times for pets
+2. add a pet
+3. vetanarian check up history
+
 **b. Design changes**
 
 - Did your design change during implementation?
