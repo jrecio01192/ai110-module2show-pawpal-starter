@@ -1,7 +1,7 @@
 """Core data model for PawPal+ pet care records."""
 
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from uuid import uuid4
 
 
@@ -167,6 +167,15 @@ class Scheduler:
         """Retrieve tasks from every pet owned by this scheduler's owner."""
         return self.owner.get_tasks(include_completed=include_completed)
 
+    def filter_tasks(
+        self, pet_name: str | None = None, completed: bool | None = None
+    ) -> list[Task]:
+        """Filter tasks by pet name, completion status, or both."""
+        tasks = self.owner.get_tasks(pet_name=pet_name, include_completed=True)
+        if completed is not None:
+            tasks = [task for task in tasks if task.completed is completed]
+        return tasks
+
     def organize_tasks(self, include_completed: bool = False) -> list[Task]:
         """Return tasks in chronological order, with pet name as a tie-breaker."""
         return sorted(
@@ -185,10 +194,21 @@ class Scheduler:
         ]
 
     def complete_task(self, task_id: str) -> Task:
-        """Mark a task complete by its unique ID and return the task."""
+        """Complete a task and schedule its next occurrence if it repeats."""
         for task in self.get_tasks():
             if task.id == task_id:
+                was_completed = task.completed
                 task.mark_complete()
+                if not was_completed:
+                    frequency = task.frequency.casefold()
+                    interval = {"daily": 1, "weekly": 7}.get(frequency)
+                    if interval is not None:
+                        next_task = Task(
+                            task.description,
+                            task.time + timedelta(days=interval),
+                            task.frequency,
+                        )
+                        self.owner.get_pet(task.pet_name).add_task(next_task)
                 return task
         raise KeyError(f"No task with ID {task_id!r} belongs to {self.owner.name}.")
 

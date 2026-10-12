@@ -127,10 +127,14 @@ def test_scheduler_organizes_filters_and_manages_tasks_across_pets():
 
     assert scheduler.complete_task(earlier.id) is earlier
     assert earlier.completed is True
-    assert scheduler.organize_tasks() == [later, tomorrow]
+    next_morning_meal = mochi.tasks[-1]
+    assert next_morning_meal.description == earlier.description
+    assert next_morning_meal.time == datetime(2026, 10, 12, 8)
+    assert scheduler.organize_tasks() == [later, next_morning_meal, tomorrow]
     assert scheduler.organize_tasks(include_completed=True) == [
         earlier,
         later,
+        next_morning_meal,
         tomorrow,
     ]
     assert scheduler.reopen_task(earlier.id) is earlier
@@ -138,3 +142,65 @@ def test_scheduler_organizes_filters_and_manages_tasks_across_pets():
 
     with pytest.raises(KeyError, match="No task with ID"):
         scheduler.complete_task("missing-task")
+
+
+def test_scheduler_filters_tasks_by_pet_name_and_completion_status():
+    owner = Owner("Jordan")
+    mochi = owner.add_pet("Mochi", "Cat")
+    biscuit = owner.add_pet("Biscuit", "Dog")
+    completed_task = mochi.add_task(Task("Morning meal", datetime(2026, 10, 11, 8)))
+    active_task = biscuit.add_task(Task("Walk", datetime(2026, 10, 11, 9)))
+    completed_task.mark_complete()
+    scheduler = Scheduler(owner)
+
+    assert scheduler.filter_tasks(completed=True) == [completed_task]
+    assert scheduler.filter_tasks(completed=False) == [active_task]
+    assert scheduler.filter_tasks(pet_name="mOcHi") == [completed_task]
+    assert scheduler.filter_tasks(pet_name="Mochi", completed=True) == [completed_task]
+    assert scheduler.filter_tasks(pet_name="Biscuit", completed=True) == []
+
+    with pytest.raises(KeyError, match="No pet named"):
+        scheduler.filter_tasks(pet_name="Unknown")
+
+
+@pytest.mark.parametrize(
+    ("frequency", "expected_time"),
+    [
+        ("daily", datetime(2026, 10, 12, 8, 30)),
+        ("weekly", datetime(2026, 10, 18, 8, 30)),
+    ],
+)
+def test_completing_recurring_task_schedules_next_occurrence(
+    frequency, expected_time
+):
+    owner = Owner("Jordan")
+    pet = owner.add_pet("Mochi", "Cat")
+    task = pet.add_task(Task("Medication", datetime(2026, 10, 11, 8, 30), frequency))
+    scheduler = Scheduler(owner)
+
+    assert scheduler.complete_task(task.id) is task
+
+    assert task.completed is True
+    assert len(pet.tasks) == 2
+    next_task = pet.tasks[1]
+    assert next_task is not task
+    assert next_task.id != task.id
+    assert next_task.description == task.description
+    assert next_task.time == expected_time
+    assert next_task.frequency == task.frequency
+    assert next_task.completed is False
+    assert (next_task.pet_name, next_task.owner_name) == ("Mochi", "Jordan")
+
+    scheduler.complete_task(task.id)
+    assert len(pet.tasks) == 2
+
+
+def test_completing_one_time_task_does_not_schedule_another_occurrence():
+    owner = Owner("Jordan")
+    pet = owner.add_pet("Mochi", "Cat")
+    task = pet.add_task(Task("Vet appointment", datetime(2026, 10, 11, 8, 30)))
+
+    Scheduler(owner).complete_task(task.id)
+
+    assert task.completed is True
+    assert pet.tasks == [task]

@@ -1,34 +1,59 @@
-"""Run a small PawPal+ pet-care schedule demo."""
 
-from datetime import date, datetime, time
+from datetime import datetime
+from pawpal_system import Owner, Task, Scheduler
 
-from pawpal_system import Owner, Scheduler, Task
+# Step 1: Create an owner and add pets
+owner = Owner("Jordan")
 
+owner.add_pet("Max", "Dog")
+owner.add_pet("Bella", "Cat")
 
-def main() -> None:
-    owner = Owner("Jordan")
-    owner.add_pet("Mochi", "Cat")
-    owner.add_pet("Biscuit", "Dog")
+# Step 2: Create the scheduler
+scheduler = Scheduler(owner)
 
-    today = date.today()
-    owner.add_task(
-        "Mochi",
-        Task("Breakfast", datetime.combine(today, time(7, 30)), "daily"),
-    )
-    owner.add_task(
-        "Biscuit",
-        Task("Morning walk", datetime.combine(today, time(9, 0)), "daily"),
-    )
-    owner.add_task(
-        "Mochi",
-        Task("Dinner", datetime.combine(today, time(18, 0)), "daily"),
-    )
+# Step 3: Add tasks OUT OF ORDER
+owner.add_task("Max", Task(
+    description="Evening walk",
+    time=datetime(2026, 10, 15, 18, 0)
+))
 
-    scheduler = Scheduler(owner)
-    print(f"Today's Schedule - {today:%A, %B %d, %Y}")
-    for task in scheduler.get_tasks_for_day(today):
-        print(f"{task.time:%I:%M %p} - {task.description} ({task.pet_name})")
+owner.add_task("Bella", Task(
+    description="Morning feeding",
+    time=datetime(2026, 10, 15, 8, 0)
+))
 
+owner.add_task("Max", Task(
+    description="Afternoon playtime",
+    time=datetime(2026, 10, 15, 14, 0)
+))
 
-if __name__ == "__main__":
-    main()
+owner.add_task("Bella", Task(
+    description="Vet appointment",
+    time=datetime(2026, 10, 16, 10, 0)
+))
+
+# Step 4: Test sorting
+print("\n=== TASKS SORTED BY TIME ===")
+
+for task in scheduler.organize_tasks():
+    print(f"{task.time} | {task.pet_name} | {task.description}")
+
+# Step 5: Test filtering by pet
+print("\n=== TASKS FOR MAX ===")
+
+for task in scheduler.filter_tasks(pet_name="Max"):
+    print(f"{task.pet_name} | {task.description}")
+
+# Step 6: Test filtering by completion status
+tasks = scheduler.get_tasks()
+tasks[0].mark_complete()
+
+print("\n=== INCOMPLETE TASKS ===")
+
+for task in scheduler.filter_tasks(completed=False):
+    print(f"{task.pet_name} | {task.description}")
+
+print("\n=== COMPLETED TASKS ===")
+
+for task in scheduler.filter_tasks(completed=True):
+    print(f"{task.pet_name} | {task.description}")

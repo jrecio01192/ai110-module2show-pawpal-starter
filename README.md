@@ -22,9 +22,10 @@ Your job is to design the system first (UML), then implement the logic in Python
 - `Scheduler` collects tasks across the owner's pets, sorts them chronologically,
   filters by day or completion status, and marks tasks complete or reopens them.
 
-Frequency is stored as task metadata; recurring tasks are not automatically
-expanded into future occurrences. Feeding and vet-history records remain
-available to the Streamlit app separately from the general task scheduler.
+Completing a daily or weekly task creates the next occurrence one day or seven
+days after its scheduled time. One-time tasks do not create future occurrences.
+Feeding and vet-history records remain available to the Streamlit app separately
+from the general task scheduler.
 
 ## What you will build
 
@@ -94,9 +95,9 @@ Sample test output:
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
 | Task sorting | `Scheduler.organize_tasks` | Chronological order; pet name breaks time ties |
-| Filtering | `Scheduler.get_tasks_for_day`, `include_completed` | Select a day and optionally exclude completed tasks |
+| Filtering | `Scheduler.filter_tasks`, `Scheduler.get_tasks_for_day` | Filter by pet name and/or completion status, or select a day |
 | Completion | `Scheduler.complete_task`, `Scheduler.reopen_task` | Updates the task's completion status |
-| Recurring tasks | `Task.frequency` | Frequency is recorded but future occurrences are not generated |
+| Recurring tasks | `Task.frequency`, `Scheduler.complete_task` | Completing daily or weekly tasks schedules the next occurrence |
 
 ## 📸 Demo Walkthrough
 
