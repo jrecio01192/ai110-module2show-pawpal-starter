@@ -86,9 +86,9 @@ pytest --cov
 
 Sample test output:
 
-```
-# Paste your pytest output here
-```
+tests\test_pawpal.py ................                                                     [100%]
+
+====================================== 16 passed in 0.04s ======================================
 
 ## 📐 Smarter Scheduling
 
@@ -102,12 +102,64 @@ Sample test output:
 
 ## 📸 Demo Walkthrough
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
+### 1. Launch the Application
+Run the Streamlit application using `py -m streamlit run app.py`. The PawPal+ interface allows users to manage their pets, feeding records, veterinary visits, and scheduled care tasks. Users can also update their owner's name through the sidebar.
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+### 2. Add a Pet
+Navigate to the Pets tab and enter the pet's name and species. Click the **Add pet** button to register the pet. The application displays the registered pets and prevents duplicate or blank pet names.
+
+### 3. Schedule Pet Care Tasks
+Select a registered pet and create a care task by entering its description, scheduled date and time, and frequency. For example, a user can schedule breakfast for Mochi at 7:30 AM and a morning walk for Biscuit at 9:00 AM. Tasks are associated with their respective pets and owners.
+
+### 4. View Today's Schedule
+The Scheduler organizes tasks chronologically, regardless of the order in which they were created. Users can view tasks scheduled for a particular day using `Scheduler.get_tasks_for_day()`.
+
+Example daily schedule:
+
+**Today's Schedule - Sunday, October 11, 2026**
+
+- 07:30 AM - Breakfast (Mochi)
+- 09:00 AM - Morning walk (Biscuit)
+- 06:00 PM - Dinner (Mochi)
+
+### 5. Sorting, Filtering, and Conflict Detection
+The Scheduler provides several features for organizing pet care responsibilities:
+
+- **Sorting:** `organize_tasks()` arranges tasks from earliest to latest.
+- **Filtering:** `filter_tasks()` displays tasks based on pet name or completion status.
+- **Daily schedule:** `get_tasks_for_day()` retrieves tasks scheduled for a selected date.
+- **Conflict detection:** `find_conflicts()` identifies tasks scheduled at the exact same date and time.
+- **Completion tracking:** `complete_task()` marks tasks as completed, while `reopen_task()` marks them as incomplete again.
+- **Recurring tasks:** Completing a daily or weekly task creates its next scheduled occurrence.
+
+Conflict detection only identifies identical scheduled times and does not account for overlapping task durations.
+
+### 6. Test the Scheduler in the Terminal
+Run `py main.py` to test the scheduling logic independently of the Streamlit interface. Tasks are intentionally added out of chronological order to verify that sorting and filtering work correctly.
+
+**Sample CLI output (illustrative):**
+
+```text
+=== TASKS SORTED BY TIME ===
+2026-10-15 08:00:00 | Bella | Morning feeding
+2026-10-15 14:00:00 | Max | Afternoon playtime
+2026-10-15 18:00:00 | Max | Evening walk
+2026-10-16 10:00:00 | Bella | Vet appointment
+
+=== TASKS FOR MAX ===
+Max | Evening walk
+Max | Afternoon playtime
+
+=== INCOMPLETE TASKS ===
+Bella | Morning feeding
+Max | Afternoon playtime
+Bella | Vet appointment
+
+=== COMPLETED TASKS ===
+Max | Evening walk
+```
+
+### 7. Verify Application Functionality
+Run `pytest` to execute the automated tests. These tests verify important scheduling behaviors, including sorting, filtering, task completion, and other implemented scheduling features.
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
