@@ -12,6 +12,20 @@ A busy pet owner needs help staying consistent with pet care. They want an assis
 
 Your job is to design the system first (UML), then implement the logic in Python, then connect it to the Streamlit UI.
 
+## Core model
+
+- `Task` stores a description, scheduled date/time, frequency, completion status,
+  and the pet and owner it belongs to.
+- `Pet` stores its details and care tasks. Its `add_task` method associates new
+  tasks with that pet.
+- `Owner` manages multiple pets and can retrieve or add tasks by pet name.
+- `Scheduler` collects tasks across the owner's pets, sorts them chronologically,
+  filters by day or completion status, and marks tasks complete or reopens them.
+
+Frequency is stored as task metadata; recurring tasks are not automatically
+expanded into future occurrences. Feeding and vet-history records remain
+available to the Streamlit app separately from the general task scheduler.
+
 ## What you will build
 
 Your final app should:
@@ -53,6 +67,11 @@ Paste a sample of your app's CLI or Streamlit output here so a reader can see wh
 #   09:00 — Feeding (10 min) [priority: high]
 #   ...
 ```
+Today's Schedule - Sunday, October 11, 2026
+07:30 AM - Breakfast (Mochi)
+09:00 AM - Morning walk (Biscuit)
+06:00 PM - Dinner (Mochi)
+
 
 ## 🧪 Testing PawPal+
 
@@ -72,14 +91,12 @@ Sample test output:
 
 ## 📐 Smarter Scheduling
 
-> Fill in once you've implemented scheduling logic.
-
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Task sorting | `Scheduler.organize_tasks` | Chronological order; pet name breaks time ties |
+| Filtering | `Scheduler.get_tasks_for_day`, `include_completed` | Select a day and optionally exclude completed tasks |
+| Completion | `Scheduler.complete_task`, `Scheduler.reopen_task` | Updates the task's completion status |
+| Recurring tasks | `Task.frequency` | Frequency is recorded but future occurrences are not generated |
 
 ## 📸 Demo Walkthrough
 

@@ -11,6 +11,14 @@
 2. add a pet
 3. vetanarian check up history
 
+FeedingRecord Class: The FeedingRecord class stores information about a pet's feeding history. It keeps track of the pet's name, owner's name, the date and time the pet was fed, and the type of food given. Its main responsibility is to maintain individual feeding records so owners can track when and what their pets have eaten.
+
+VetVisit Class: The VetVisit class stores information about a pet's veterinary appointments. It records the pet's name, owner's name, date of the visit, veterinarian's name, and any notes from the appointment. Its main responsibility is to maintain a history of veterinary visits so owners can keep track of their pet's medical care.
+
+Pet Class: The Pet class represents an individual pet and stores basic information such as its name, species, and owner's name. It also maintains lists of feeding records and veterinary visits. The class includes methods called add_feeding() and add_vet_visit(), which create new records and add them to the appropriate lists. Its main responsibility is to organize and manage all information related to a specific pet.
+
+Owner Class: The Owner class represents a pet owner and manages their list of pets. It includes the add_pet() method, which allows owners to register new pets while preventing blank names and duplicate pet names. It also includes the rename() method, which updates the owner's name across their pets and existing feeding and veterinary records. Its main responsibility is to manage pet ownership information and maintain consistency throughout the system.
+
 **b. Design changes**
 
 - Did your design change during implementation?

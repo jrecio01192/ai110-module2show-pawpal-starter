@@ -1,19 +1,46 @@
 classDiagram
-    class Owner {
-        +str name
-        +list~Pet~ pets
-        +rename(name) None
-        +add_pet(name, species) Pet
+    class Task {
+        +str id
+        +str description
+        +datetime time
+        +str frequency
+        +bool completed
+        +str pet_name
+        +str owner_name
+        +mark_complete() None
+        +reopen() None
     }
 
     class Pet {
         +str name
         +str species
         +str owner_name
+        +list~Task~ tasks
         +list~FeedingRecord~ feedings
         +list~VetVisit~ vet_visits
+        +add_task(task) Task
+        +get_tasks(include_completed) list~Task~
         +add_feeding(fed_at, food) FeedingRecord
         +add_vet_visit(visit_date, veterinarian, notes) VetVisit
+    }
+
+    class Owner {
+        +str name
+        +list~Pet~ pets
+        +rename(name) None
+        +add_pet(name, species) Pet
+        +get_pet(pet_name) Pet
+        +add_task(pet_name, task) Task
+        +get_tasks(pet_name, include_completed) list~Task~
+    }
+
+    class Scheduler {
+        +Owner owner
+        +get_tasks(include_completed) list~Task~
+        +organize_tasks(include_completed) list~Task~
+        +get_tasks_for_day(day, include_completed) list~Task~
+        +complete_task(task_id) Task
+        +reopen_task(task_id) Task
     }
 
     class FeedingRecord {
@@ -31,6 +58,8 @@ classDiagram
         +str notes
     }
 
-    Owner "1" o-- "*" Pet : cares for
+    Owner "1" o-- "*" Pet : manages
+    Owner "1" --> "1" Scheduler : schedules tasks for
+    Pet "1" *-- "*" Task : care tasks
     Pet "1" *-- "*" FeedingRecord : feeding log
     Pet "1" *-- "*" VetVisit : checkup history
