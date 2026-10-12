@@ -38,6 +38,8 @@ Owner Class: The Owner class represents a pet owner and manages their list of pe
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
 
+One tradeoff I made with the Scheduler class is that it sorts tasks based on their scheduled date and time without checking for overlapping tasks. This makes the scheduling system simpler to implement and easier to manage, but it allows multiple tasks to be scheduled at the same time. In the future, I could improve the scheduler by adding task durations and checking for scheduling conflicts.
+
 ---
 
 ## 3. AI Collaboration

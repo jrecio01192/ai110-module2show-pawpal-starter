@@ -204,3 +204,44 @@ def test_completing_one_time_task_does_not_schedule_another_occurrence():
 
     assert task.completed is True
     assert pet.tasks == [task]
+
+
+def test_scheduler_returns_tasks_in_chronological_order():
+    owner = Owner("Jordan")
+    pet = owner.add_pet("Mochi", "Cat")
+    evening = pet.add_task(Task("Dinner", datetime(2026, 10, 11, 18)))
+    morning = pet.add_task(Task("Breakfast", datetime(2026, 10, 11, 8)))
+    afternoon = pet.add_task(Task("Walk", datetime(2026, 10, 11, 13)))
+
+    assert Scheduler(owner).organize_tasks() == [morning, afternoon, evening]
+
+
+def test_completing_daily_task_creates_next_day_occurrence():
+    owner = Owner("Jordan")
+    pet = owner.add_pet("Mochi", "Cat")
+    task = pet.add_task(
+        Task("Medication", datetime(2026, 10, 11, 8, 30), "daily")
+    )
+
+    Scheduler(owner).complete_task(task.id)
+
+    assert len(pet.tasks) == 2
+    next_occurrence = pet.tasks[1]
+    assert next_occurrence.time == datetime(2026, 10, 12, 8, 30)
+    assert next_occurrence.description == task.description
+    assert next_occurrence.frequency == "daily"
+    assert next_occurrence.completed is False
+
+
+def test_scheduler_finds_tasks_with_duplicate_times():
+    owner = Owner("Jordan")
+    mochi = owner.add_pet("Mochi", "Cat")
+    biscuit = owner.add_pet("Biscuit", "Dog")
+    shared_time = datetime(2026, 10, 11, 8)
+    first = mochi.add_task(Task("Breakfast", shared_time))
+    second = biscuit.add_task(Task("Medication", shared_time))
+    unique = mochi.add_task(Task("Walk", datetime(2026, 10, 11, 9)))
+
+    conflicts = Scheduler(owner).find_conflicts()
+    assert conflicts == [(first, second)]
+    assert all(unique not in conflict for conflict in conflicts)

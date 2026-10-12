@@ -96,6 +96,7 @@ Sample test output:
 |---------|-----------|-------|
 | Task sorting | `Scheduler.organize_tasks` | Chronological order; pet name breaks time ties |
 | Filtering | `Scheduler.filter_tasks`, `Scheduler.get_tasks_for_day` | Filter by pet name and/or completion status, or select a day |
+| Conflict detection | `Scheduler.find_conflicts` | Returns task pairs scheduled at the exact same date and time |
 | Completion | `Scheduler.complete_task`, `Scheduler.reopen_task` | Updates the task's completion status |
 | Recurring tasks | `Task.frequency`, `Scheduler.complete_task` | Completing daily or weekly tasks schedules the next occurrence |
 

@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
+from itertools import combinations
 from uuid import uuid4
 
 
@@ -182,6 +183,17 @@ class Scheduler:
             self.get_tasks(include_completed=include_completed),
             key=lambda task: (task.time, task.pet_name.casefold(), task.id),
         )
+
+    def find_conflicts(
+        self, include_completed: bool = False
+    ) -> list[tuple[Task, Task]]:
+        """Return pairs of tasks scheduled for the exact same datetime."""
+        tasks = self.get_tasks(include_completed=include_completed)
+        return [
+            (first, second)
+            for first, second in combinations(tasks, 2)
+            if first.time == second.time
+        ]
 
     def get_tasks_for_day(
         self, day: date, include_completed: bool = False
